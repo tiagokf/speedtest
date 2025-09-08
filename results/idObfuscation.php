@@ -58,7 +58,17 @@ function obfdeobf($id, $dec)
  */
 function obfuscateId($id)
 {
-    return str_pad(base_convert(obfdeobf($id + 1, false), 10, 36), 7, 0, STR_PAD_LEFT);
+    // Gera um ID com 5-8 caracteres aleatórios
+    $obfuscated = obfdeobf($id + 1, false);
+    $base36 = base_convert($obfuscated, 10, 36);
+    
+    // Garante pelo menos 5 caracteres
+    $minLength = 5;
+    if (strlen($base36) < $minLength) {
+        $base36 = str_pad($base36, $minLength, '0', STR_PAD_LEFT);
+    }
+    
+    return strtoupper($base36);
 }
 
 /**
@@ -68,5 +78,5 @@ function obfuscateId($id)
  */
 function deobfuscateId($id)
 {
-    return obfdeobf(base_convert($id, 36, 10), true) - 1;
+    return obfdeobf(base_convert(strtolower($id), 36, 10), true) - 1;
 }

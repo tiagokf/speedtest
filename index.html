@@ -218,6 +218,12 @@ function updateUI(forced){
 	if(uiData==null) return;
 	var status=uiData.testState;
 	I("ip").textContent=uiData.clientIp;
+	
+	// Atualizar localização do usuário se disponível
+	if(uiData.clientIp && uiData.clientIp !== "" && !I("userLocation").textContent.includes("Brasil")) {
+		getUserLocation(uiData.clientIp);
+	}
+	
 	I("dlText").textContent=(status==1&&uiData.dlStatus==0)?"...":format(uiData.dlStatus);
 	drawMeter(I("dlMeter"),mbpsToAmount(Number(uiData.dlStatus*(status==1?oscillate():1))),meterBk,dlColor,Number(uiData.dlProgress),progColor);
 	I("ulText").textContent=(status==3&&uiData.ulStatus==0)?"...":format(uiData.ulStatus);
@@ -616,6 +622,15 @@ function initUI(){
 		.privacy-content {
 			padding: 30px 25px;
 		}
+		
+		.location-info {
+			flex-direction: column;
+			gap: 15px;
+		}
+		
+		.location-arrow {
+			transform: rotate(90deg);
+		}
 	}
 	
 	.visible {
@@ -741,6 +756,57 @@ function initUI(){
 		transform: translateY(-2px);
 		box-shadow: 0 8px 25px rgba(14, 229, 127, 0.3);
 	}
+	
+	.location-info {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 20px;
+		margin-bottom: 30px;
+		flex-wrap: wrap;
+	}
+	
+	.location-card {
+		background: rgba(255,255,255,0.05);
+		border: 1px solid rgba(255,255,255,0.1);
+		border-radius: 16px;
+		padding: 20px;
+		min-width: 200px;
+		text-align: center;
+		transition: all 0.3s ease;
+	}
+	
+	.location-card:hover {
+		border-color: rgba(14, 229, 127, 0.3);
+		transform: translateY(-2px);
+	}
+	
+	.location-title {
+		font-size: 14px;
+		font-weight: 600;
+		color: rgba(255,255,255,0.6);
+		text-transform: uppercase;
+		letter-spacing: 1px;
+		margin-bottom: 10px;
+	}
+	
+	.location-text {
+		font-size: 16px;
+		font-weight: 500;
+		color: #0EE57F;
+		line-height: 1.4;
+	}
+	
+	.location-arrow {
+		font-size: 24px;
+		color: rgba(255,255,255,0.5);
+		animation: pulse 2s infinite;
+	}
+	
+	@keyframes pulse {
+		0%, 100% { opacity: 0.5; }
+		50% { opacity: 1; }
+	}
 </style>
 <title>TI Remoto - Teste de Velocidade</title>
 </head>
@@ -805,11 +871,15 @@ function initUI(){
 				<strong>Seu IP:</strong> <span id="ip">Detectando...</span>
 			</div>
 			
-			<div class="search-section">
-				<h3>Buscar Resultado</h3>
-				<div class="search-form">
-					<input type="text" id="searchId" placeholder="Digite o ID do teste" />
-					<button onclick="searchResult()">Buscar</button>
+			<div class="location-info">
+				<div class="location-card">
+					<div class="location-title">Sua Localização</div>
+					<div id="userLocation" class="location-text">Detectando...</div>
+				</div>
+				<div class="location-arrow">⟷</div>
+				<div class="location-card">
+					<div class="location-title">Servidor de Teste</div>
+					<div id="serverLocation" class="location-text">Localhost</div>
 				</div>
 			</div>
 			
@@ -818,6 +888,14 @@ function initUI(){
 				<p>ID do Teste: <span id="testId"></span></p>
 				<input type="text" class="share-input" id="resultsURL" readonly onclick="copyShareLink()"/>
 				<img src="" id="resultsImg" style="max-width:100%; border-radius:12px;"/>
+			</div>
+			
+			<div class="search-section">
+				<h3>Buscar Resultado Anterior</h3>
+				<div class="search-form">
+					<input type="text" id="searchId" placeholder="Ex: A1B2C" style="text-transform: uppercase;" />
+					<button onclick="searchResult()">Buscar</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -887,15 +965,44 @@ function closeModal() {
 
 // Função para buscar resultado por ID
 function searchResult() {
-	var searchId = I('searchId').value.trim();
+	var searchId = I('searchId').value.trim().toUpperCase();
 	if (searchId === '') {
 		showModal('Campo Vazio', 'Por favor, digite um ID de teste para buscar.');
+		return;
+	}
+	
+	// Validação básica do formato
+	if (!/^[A-Z0-9]{5,8}$/.test(searchId)) {
+		showModal('ID Inválido', 'O ID deve conter entre 5 e 8 caracteres alfanuméricos.');
 		return;
 	}
 	
 	// Redirecionar para a página de resultado
 	var resultURL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/results/result.php?id=' + encodeURIComponent(searchId);
 	window.open(resultURL, '_blank');
+}
+
+// Função para obter localização do usuário
+function getUserLocation(ip) {
+	// Usar serviço gratuito para obter localização por IP
+	fetch('https://ipapi.co/' + ip + '/json/')
+		.then(response => response.json())
+		.then(data => {
+			if (data.city && data.country_name) {
+				var location = data.city + ', ' + data.country_name;
+				I('userLocation').textContent = location;
+			} else {
+				I('userLocation').textContent = 'Localização não detectada';
+			}
+		})
+		.catch(error => {
+			// Fallback para localhost
+			if (ip.includes('127.0.0.1') || ip.includes('::1') || ip.includes('localhost')) {
+				I('userLocation').textContent = 'Localhost (Desenvolvimento)';
+			} else {
+				I('userLocation').textContent = 'Localização não detectada';
+			}
+		});
 }
 
 // Permitir busca com Enter
