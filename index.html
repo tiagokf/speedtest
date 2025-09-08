@@ -638,9 +638,18 @@ function initUI(){
 			padding: 30px 25px;
 		}
 		
+		.connection-info {
+			flex-direction: column;
+			gap: 15px;
+		}
+		
 		.connection-card {
-			min-width: 250px;
-			padding: 20px;
+			min-width: 200px;
+			padding: 18px;
+		}
+		
+		.location-arrow {
+			transform: rotate(90deg);
 		}
 	}
 	
@@ -770,18 +779,32 @@ function initUI(){
 	
 	.connection-info {
 		display: flex;
+		align-items: center;
 		justify-content: center;
+		gap: 20px;
 		margin-bottom: 30px;
+		flex-wrap: wrap;
 	}
 	
 	.connection-card {
 		background: rgba(255,255,255,0.05);
 		border: 1px solid rgba(255,255,255,0.1);
 		border-radius: 16px;
-		padding: 25px;
-		min-width: 300px;
+		padding: 20px;
+		min-width: 250px;
 		text-align: center;
 		transition: all 0.3s ease;
+	}
+	
+	.location-arrow {
+		font-size: 24px;
+		color: rgba(255,255,255,0.5);
+		animation: pulse 2s infinite;
+	}
+	
+	@keyframes pulse {
+		0%, 100% { opacity: 0.5; }
+		50% { opacity: 1; }
 	}
 	
 	.connection-card:hover {
@@ -880,12 +903,17 @@ function initUI(){
 			
 			<div class="connection-info">
 				<div class="connection-card">
-					<div class="connection-title">Conexão</div>
+					<div class="connection-title">Sua Localização</div>
 					<div class="ip-info">
 						<div class="ip-address" id="ipv4">IPv4: Detectando...</div>
 						<div class="ip-address" id="ipv6" style="display:none;">IPv6: Detectando...</div>
 					</div>
-					<div id="userLocation" class="location-text">Detectando localização...</div>
+					<div id="userLocation" class="location-text">Detectando...</div>
+				</div>
+				<div class="location-arrow">⟷</div>
+				<div class="connection-card">
+					<div class="connection-title">Servidor de Teste</div>
+					<div id="serverLocation" class="location-text">Servidor Local</div>
 				</div>
 			</div>
 			
