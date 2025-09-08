@@ -22,10 +22,10 @@ $MsSql_TrustServerCertificate = true;  //true, false or comment out for driver d
 //Download driver from https://docs.microsoft.com/en-us/sql/connect/php/download-drivers-php-sql-server?view=sql-server-ver16
 
 // Mysql settings - CONFIGURE PARA PRODUÇÃO
-$MySql_username = 'SEU_USUARIO_MYSQL';
-$MySql_password = 'SUA_SENHA_MYSQL';
+$MySql_username = 'u533482233_speedtest';
+$MySql_password = 'Speedtest2020';
 $MySql_hostname = 'localhost'; // ou IP do servidor MySQL
-$MySql_databasename = 'speedtest';
+$MySql_databasename = 'u533482233_speedtest';
 $MySql_port = '3306';
 
 // Postgresql settings

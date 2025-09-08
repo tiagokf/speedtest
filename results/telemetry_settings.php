@@ -1,5 +1,9 @@
 <?php
 
+// Detectar ambiente automaticamente
+$isProduction = !in_array($_SERVER['HTTP_HOST'], ['localhost', '127.0.0.1', '::1']) && 
+                !strpos($_SERVER['HTTP_HOST'], '.local');
+
 // Type of db: "mssql", "mysql", "sqlite" or "postgresql"
 $db_type = 'mysql';
 // Password to login to stats.php. Change this!!!
@@ -21,12 +25,22 @@ $MsSql_password = 'PASSWORD';          //not used if MsSql_WindowsAuthentication
 $MsSql_TrustServerCertificate = true;  //true, false or comment out for driver default
 //Download driver from https://docs.microsoft.com/en-us/sql/connect/php/download-drivers-php-sql-server?view=sql-server-ver16
 
-// Mysql settings
-$MySql_username = 'root';
-$MySql_password = 'root';
-$MySql_hostname = 'localhost';
-$MySql_databasename = 'speedtest';
-$MySql_port = '3306';
+// Configurações MySQL baseadas no ambiente
+if ($isProduction) {
+    // PRODUÇÃO
+    $MySql_username = 'u533482233_speedtest';
+    $MySql_password = 'Speedtest2020';
+    $MySql_hostname = 'localhost';
+    $MySql_databasename = 'u533482233_speedtest';
+    $MySql_port = '3306';
+} else {
+    // DESENVOLVIMENTO
+    $MySql_username = 'root';
+    $MySql_password = 'root';
+    $MySql_hostname = 'localhost';
+    $MySql_databasename = 'speedtest';
+    $MySql_port = '3306';
+}
 
 // Postgresql settings
 $PostgreSql_username = 'USERNAME';
