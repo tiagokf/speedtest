@@ -200,15 +200,21 @@ function startStop(){
                 //if testId is present, show sharing panel, otherwise do nothing
                 try{
                     var testId=uiData.testId;
+                    console.log('Test ID:', testId); // Debug
                     if(testId!=null){
                         var shareURL=window.location.href.substring(0,window.location.href.lastIndexOf("/"))+"/results/result.php?id="+testId;
                         var imageURL=window.location.href.substring(0,window.location.href.lastIndexOf("/"))+"/results/?id="+testId;
                         I("resultsImg").src=imageURL;
                         I("resultsURL").value=shareURL;
                         I("testId").textContent=testId;
-                        I("shareArea").style.display="";
+                        I("shareArea").style.display="block";
+                        console.log('Share area should be visible now'); // Debug
+                    } else {
+                        console.log('No test ID available'); // Debug
                     }
-                }catch(e){}
+                }catch(e){
+                    console.error('Error showing share area:', e); // Debug
+                }
             }
 		};
 		s.start();
