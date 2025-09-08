@@ -199,8 +199,9 @@ function startStop(){
                 try{
                     var testId=uiData.testId;
                     if(testId!=null){
-                        var shareURL=window.location.href.substring(0,window.location.href.lastIndexOf("/"))+"/results/?id="+testId;
-                        I("resultsImg").src=shareURL;
+                        var shareURL=window.location.href.substring(0,window.location.href.lastIndexOf("/"))+"/results/result.php?id="+testId;
+                        var imageURL=window.location.href.substring(0,window.location.href.lastIndexOf("/"))+"/results/?id="+testId;
+                        I("resultsImg").src=imageURL;
                         I("resultsURL").value=shareURL;
                         I("testId").textContent=testId;
                         I("shareArea").style.display="";
@@ -630,13 +631,123 @@ function initUI(){
 		from { opacity: 0; transform: translateY(30px); }
 		to { opacity: 1; transform: translateY(0); }
 	}
+	
+	.modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0,0,0,0.8);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
+	
+	.modal-content {
+		background: #1A1D2A;
+		border: 1px solid rgba(14, 229, 127, 0.3);
+		border-radius: 20px;
+		padding: 30px;
+		max-width: 400px;
+		width: 90%;
+		text-align: center;
+		box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+	}
+	
+	.modal-title {
+		font-size: 20px;
+		font-weight: 600;
+		color: #0EE57F;
+		margin-bottom: 15px;
+	}
+	
+	.modal-message {
+		color: rgba(255,255,255,0.8);
+		margin-bottom: 25px;
+		line-height: 1.5;
+	}
+	
+	.modal-close {
+		background: #0EE57F;
+		color: #111424;
+		border: none;
+		border-radius: 8px;
+		padding: 10px 20px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s ease;
+	}
+	
+	.modal-close:hover {
+		background: #0BC96B;
+		transform: translateY(-2px);
+	}
+	
+	.search-section {
+		background: rgba(255,255,255,0.05);
+		border: 1px solid rgba(255,255,255,0.1);
+		border-radius: 20px;
+		padding: 30px;
+		margin-bottom: 30px;
+	}
+	
+	.search-section h3 {
+		margin-bottom: 20px;
+		color: #ffffff;
+		font-weight: 600;
+		font-size: 18px;
+	}
+	
+	.search-form {
+		display: flex;
+		gap: 15px;
+		align-items: center;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+	
+	.search-form input {
+		flex: 1;
+		min-width: 200px;
+		padding: 12px 18px;
+		border: 2px solid rgba(255,255,255,0.2);
+		border-radius: 12px;
+		font-size: 16px;
+		background: rgba(255,255,255,0.1);
+		color: white;
+		outline: none;
+		transition: border-color 0.3s ease;
+	}
+	
+	.search-form input:focus {
+		border-color: #0EE57F;
+	}
+	
+	.search-form button {
+		background: linear-gradient(135deg, #0EE57F, #0BC96B);
+		color: #111424;
+		border: none;
+		border-radius: 12px;
+		padding: 12px 24px;
+		font-size: 16px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s ease;
+	}
+	
+	.search-form button:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 25px rgba(14, 229, 127, 0.3);
+	}
 </style>
-<title>LibreSpeed - Teste de Velocidade</title>
+<title>TI Remoto - Teste de Velocidade</title>
 </head>
 <body>
 <div class="container">
 	<div class="header">
-		<img src=".logo/logo2.png" alt="LibreSpeed" class="logo">
+		<img src=".logo/logo2.png" alt="TI Remoto" class="logo">
 		<div class="subtitle">Teste de Velocidade da Internet</div>
 	</div>
 	
@@ -694,16 +805,32 @@ function initUI(){
 				<strong>Seu IP:</strong> <span id="ip">Detectando...</span>
 			</div>
 			
+			<div class="search-section">
+				<h3>Buscar Resultado</h3>
+				<div class="search-form">
+					<input type="text" id="searchId" placeholder="Digite o ID do teste" />
+					<button onclick="searchResult()">Buscar</button>
+				</div>
+			</div>
+			
 			<div id="shareArea" class="share-section" style="display:none">
 				<h3>Compartilhar Resultados</h3>
 				<p>ID do Teste: <span id="testId"></span></p>
-				<input type="text" class="share-input" id="resultsURL" readonly onclick="this.select();document.execCommand('copy');alert('Link copiado!')"/>
+				<input type="text" class="share-input" id="resultsURL" readonly onclick="copyShareLink()"/>
 				<img src="" id="resultsImg" style="max-width:100%; border-radius:12px;"/>
 			</div>
 		</div>
 	</div>
 	
 	<a href="#" class="privacy-link" onclick="I('privacyPolicy').style.display='flex'">Política de Privacidade</a>
+</div>
+
+<div id="modal" class="modal">
+	<div class="modal-content">
+		<div id="modalTitle" class="modal-title"></div>
+		<div id="modalMessage" class="modal-message"></div>
+		<button class="modal-close" onclick="closeModal()">OK</button>
+	</div>
 </div>
 
 <div id="privacyPolicy" class="privacy-modal" style="display:none">
@@ -734,6 +861,55 @@ function initUI(){
 </div>
 
 <script>
+// Funções do modal
+function copyShareLink() {
+	var input = I('resultsURL');
+	input.select();
+	input.setSelectionRange(0, 99999);
+	
+	try {
+		document.execCommand('copy');
+		showModal('Link Copiado!', 'O link foi copiado para a área de transferência com sucesso.');
+	} catch (err) {
+		showModal('Erro', 'Não foi possível copiar o link. Tente selecionar e copiar manualmente.');
+	}
+}
+
+function showModal(title, message) {
+	I('modalTitle').textContent = title;
+	I('modalMessage').textContent = message;
+	I('modal').style.display = 'flex';
+}
+
+function closeModal() {
+	I('modal').style.display = 'none';
+}
+
+// Função para buscar resultado por ID
+function searchResult() {
+	var searchId = I('searchId').value.trim();
+	if (searchId === '') {
+		showModal('Campo Vazio', 'Por favor, digite um ID de teste para buscar.');
+		return;
+	}
+	
+	// Redirecionar para a página de resultado
+	var resultURL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/results/result.php?id=' + encodeURIComponent(searchId);
+	window.open(resultURL, '_blank');
+}
+
+// Permitir busca com Enter
+document.addEventListener('DOMContentLoaded', function() {
+	var searchInput = I('searchId');
+	if (searchInput) {
+		searchInput.addEventListener('keypress', function(e) {
+			if (e.key === 'Enter') {
+				searchResult();
+			}
+		});
+	}
+});
+
 // Inicializar quando a página carregar
 window.onload = function() {
 	initServers();
