@@ -4,8 +4,55 @@
 $isProduction = !in_array($_SERVER['HTTP_HOST'], ['localhost', '127.0.0.1', '::1']) && 
                 !strpos($_SERVER['HTTP_HOST'], '.local');
 
-// Type of db: "mssql", "mysql", "sqlite" or "postgresql"
-$db_type = 'mysql';
+// Função para testar conexão MySQL
+function testMySQLConnection($host, $user, $pass, $db, $port) {
+    try {
+        $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_TIMEOUT => 5
+        ]);
+        $pdo = null; // Fechar conexão
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+// Configurar credenciais baseado no ambiente
+if ($isProduction) {
+    $mysql_config = [
+        'username' => 'u533482233_speedtest',
+        'password' => 'Speedtest2020',
+        'hostname' => 'localhost',
+        'database' => 'u533482233_speedtest',
+        'port' => '3306'
+    ];
+} else {
+    $mysql_config = [
+        'username' => 'root',
+        'password' => 'root',
+        'hostname' => 'localhost',
+        'database' => 'speedtest',
+        'port' => '3306'
+    ];
+}
+
+// Testar conexão MySQL e definir tipo de banco
+if (testMySQLConnection($mysql_config['hostname'], $mysql_config['username'], 
+                      $mysql_config['password'], $mysql_config['database'], 
+                      $mysql_config['port'])) {
+    // MySQL disponível
+    $db_type = 'mysql';
+    $MySql_username = $mysql_config['username'];
+    $MySql_password = $mysql_config['password'];
+    $MySql_hostname = $mysql_config['hostname'];
+    $MySql_databasename = $mysql_config['database'];
+    $MySql_port = $mysql_config['port'];
+} else {
+    // Fallback para SQLite
+    $db_type = 'sqlite';
+}
 // Password to login to stats.php. Change this!!!
 $stats_password = 'Tiago';
 // If set to true, test IDs will be obfuscated to prevent users from guessing URLs of other tests
@@ -25,16 +72,8 @@ $MsSql_password = 'PASSWORD';          //not used if MsSql_WindowsAuthentication
 $MsSql_TrustServerCertificate = true;  //true, false or comment out for driver default
 //Download driver from https://docs.microsoft.com/en-us/sql/connect/php/download-drivers-php-sql-server?view=sql-server-ver16
 
-// Configurações MySQL baseadas no ambiente
-if ($isProduction) {
-    // PRODUÇÃO
-    $MySql_username = 'u533482233_speedtest';
-    $MySql_password = 'Speedtest2020';
-    $MySql_hostname = 'localhost';
-    $MySql_databasename = 'u533482233_speedtest';
-    $MySql_port = '3306';
-} else {
-    // DESENVOLVIMENTO
+// Configurações padrão caso MySQL não esteja configurado acima
+if (!isset($MySql_username)) {
     $MySql_username = 'root';
     $MySql_password = 'root';
     $MySql_hostname = 'localhost';
