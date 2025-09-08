@@ -40,6 +40,8 @@ function initServers(){
 		I("loading").className="hidden";
 		I("serverArea").style.display="none";
 		I("testWrapper").className="visible";
+		// Detectar informações do servidor
+		detectServerInfo();
 		initUI();
 	}else{ //multiple servers
 		var noServersAvailable=function(){
@@ -841,6 +843,13 @@ function initUI(){
 		color: #0EE57F;
 		line-height: 1.4;
 	}
+	
+	.server-info {
+		font-size: 12px;
+		color: rgba(255,255,255,0.6);
+		margin-top: 5px;
+		font-style: italic;
+	}
 </style>
 <title>TI Remoto - Teste de Velocidade</title>
 </head>
@@ -913,7 +922,8 @@ function initUI(){
 				<div class="location-arrow">⟷</div>
 				<div class="connection-card">
 					<div class="connection-title">Servidor de Teste</div>
-					<div id="serverLocation" class="location-text">Servidor Local</div>
+					<div id="serverLocation" class="location-text">Detectando...</div>
+					<div id="serverInfo" class="server-info">Ambiente de desenvolvimento</div>
 				</div>
 			</div>
 			
@@ -1059,6 +1069,55 @@ function getUserLocation(ip) {
 	}
 	
 	tryNextApi(0);
+}
+
+// Função para detectar informações do servidor
+function detectServerInfo() {
+	var hostname = window.location.hostname;
+	var protocol = window.location.protocol;
+	var port = window.location.port;
+	
+	// Determinar tipo de ambiente
+	if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+		I('serverLocation').textContent = 'Localhost';
+		I('serverInfo').textContent = 'Ambiente de desenvolvimento local';
+	} else if (hostname.includes('.local') || port === '3000' || port === '8080') {
+		I('serverLocation').textContent = 'Rede Local';
+		I('serverInfo').textContent = 'Servidor de desenvolvimento';
+	} else {
+		// Tentar detectar localização do servidor por hostname
+		I('serverLocation').textContent = hostname;
+		I('serverInfo').textContent = 'Servidor de produção';
+		
+		// Tentar obter IP do servidor para localização
+		fetch('https://dns.google/resolve?name=' + hostname + '&type=A')
+			.then(response => response.json())
+			.then(data => {
+				if (data.Answer && data.Answer[0] && data.Answer[0].data) {
+					var serverIP = data.Answer[0].data;
+					getServerLocation(serverIP);
+				}
+			})
+			.catch(() => {
+				// Fallback - manter hostname
+				I('serverInfo').textContent = 'Servidor remoto';
+			});
+	}
+}
+
+// Função para obter localização do servidor
+function getServerLocation(serverIP) {
+	fetch('https://ipapi.co/' + serverIP + '/json/')
+		.then(response => response.json())
+		.then(data => {
+			if (data.city && data.country_name) {
+				I('serverLocation').textContent = data.city + ', ' + data.country_name;
+				I('serverInfo').textContent = 'Servidor de produção';
+			}
+		})
+		.catch(() => {
+			// Manter informações padrão
+		});
 }
 
 // Permitir busca com Enter
